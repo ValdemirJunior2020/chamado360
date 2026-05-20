@@ -340,3 +340,130 @@ body {
     font-size: 0.88rem;
   }
 }
+/* C:\Users\Valdemir Goncalves\Desktop\Meus Projetos\Chamado360\client\src\styles\App.css */
+
+.calling-wall-section {
+  padding: 2rem 0;
+}
+
+.calling-wall-header h2 {
+  color: #ffffff;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+}
+
+.calling-wall-header p {
+  color: rgba(255, 255, 255, 0.72);
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.calling-wall-empty {
+  padding: 1.5rem;
+  border-radius: 22px;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.78);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(212, 175, 55, 0.18);
+}
+
+.calling-wall-card {
+  height: 100%;
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  padding: 1.2rem;
+  border-radius: 24px;
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.13),
+    rgba(255, 255, 255, 0.06)
+  );
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.22);
+  backdrop-filter: blur(16px);
+}
+
+.calling-wall-avatar {
+  width: 52px;
+  height: 52px;
+  flex: 0 0 52px;
+  display: grid;
+  place-items: center;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #d4af37, #f3df91);
+  color: #0b1b2b;
+  font-weight: 900;
+  font-size: 1.3rem;
+}
+
+.calling-wall-card h5 {
+  margin: 0;
+  color: #ffffff;
+  font-weight: 800;
+}
+
+.calling-wall-card p {
+  margin: 0.25rem 0 0.8rem;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.calling-wall-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.38rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(107, 142, 35, 0.18);
+  border: 1px solid rgba(143, 188, 70, 0.25);
+  color: #e9f7d8;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.calling-summary-card {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+  padding: 1.4rem;
+  border-radius: 26px;
+  background: linear-gradient(
+    145deg,
+    rgba(212, 175, 55, 0.16),
+    rgba(255, 255, 255, 0.07)
+  );
+  border: 1px solid rgba(212, 175, 55, 0.25);
+  box-shadow: 0 24px 55px rgba(0, 0, 0, 0.22);
+}
+
+.calling-summary-card h3 {
+  color: #ffffff;
+  font-weight: 850;
+  margin: 0.3rem 0;
+}
+
+.calling-summary-card p {
+  color: rgba(255, 255, 255, 0.75);
+  margin: 0;
+}
+
+.calling-summary-badge {
+  white-space: nowrap;
+  padding: 0.65rem 0.95rem;
+  border-radius: 999px;
+  background: rgba(11, 27, 43, 0.75);
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  color: #f3df91;
+  font-weight: 800;
+}
+
+@media (max-width: 768px) {
+  .calling-summary-card {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .calling-summary-badge {
+    white-space: normal;
+  }
+}
