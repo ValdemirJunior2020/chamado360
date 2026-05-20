@@ -9,6 +9,7 @@ import QuestionCard from "../components/QuestionCard";
 import { generateCallingAnalysis } from "../api/openaiApi";
 import { questions } from "../data/questions";
 import { translations } from "../data/translations";
+import { saveAnalysisResult } from "../services/resultService";
 
 export default function Quiz() {
   const navigate = useNavigate();
@@ -112,6 +113,18 @@ export default function Quiz() {
 
       if (!data?.success || !data?.result) {
         throw new Error(data?.message || "No result returned.");
+      }
+
+      try {
+        await saveAnalysisResult({
+          name,
+          userId,
+          language,
+          result: data.result,
+          callingTitle: data.callingTitle || ""
+        });
+      } catch (firebaseError) {
+        console.error("Error saving full result to Firebase:", firebaseError);
       }
 
       localStorage.setItem("chamado360_result", data.result);
