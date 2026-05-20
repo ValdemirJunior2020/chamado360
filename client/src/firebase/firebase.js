@@ -1,4 +1,5 @@
-// client/src/firebase/firebase.js
+// C:\Users\Valdemir Goncalves\Desktop\Meus Projetos\Chamado360\client\src\firebase\firebase.js
+
 import { initializeApp } from "firebase/app";
 import { getAnalytics, isSupported } from "firebase/analytics";
 import { getFirestore } from "firebase/firestore";
