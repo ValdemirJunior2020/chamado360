@@ -7,6 +7,7 @@ import WhatsAppFeedback from "../components/WhatsAppFeedback";
 import { translations } from "../data/translations";
 import { classifyCalling } from "../services/callingClassifier";
 import { savePublicCalling } from "../services/callingPublicService";
+import { saveAnalysisResult } from "../services/resultService";
 
 export default function Result() {
   const navigate = useNavigate();
@@ -35,6 +36,7 @@ export default function Result() {
 
   const [copied, setCopied] = useState(false);
   const [publicSaved, setPublicSaved] = useState(false);
+  const [resultSaved, setResultSaved] = useState(false);
 
   const callingSummary = useMemo(() => {
     return classifyCalling({
@@ -56,7 +58,7 @@ export default function Result() {
           userId,
           language,
           callingTitle: callingSummary.callingTitle,
-          ephesiansGift: callingSummary.ephesiansGift
+          ephesiansGift: ""
         });
 
         localStorage.setItem(alreadySavedKey, "true");
@@ -68,6 +70,32 @@ export default function Result() {
 
     saveCallingToWall();
   }, [name, userId, language, callingSummary]);
+
+  useEffect(() => {
+    const saveResultToFirebase = async () => {
+      const alreadySavedKey = `chamado360_result_saved_${userId}`;
+
+      if (!result || !userId) return;
+      if (localStorage.getItem(alreadySavedKey)) return;
+
+      try {
+        await saveAnalysisResult({
+          name,
+          userId,
+          language,
+          result,
+          callingTitle: callingSummary?.callingTitle || ""
+        });
+
+        localStorage.setItem(alreadySavedKey, "true");
+        setResultSaved(true);
+      } catch (error) {
+        console.error("Error saving analysis result:", error);
+      }
+    };
+
+    saveResultToFirebase();
+  }, [name, userId, language, result, callingSummary]);
 
   const handleCopy = async () => {
     try {
@@ -134,20 +162,16 @@ export default function Result() {
 
         <div className="calling-summary-card mb-4">
           <div>
-            <span className="section-kicker">Efésios 4:11</span>
+            <span className="section-kicker">Possível direção percebida</span>
             <h3>
               {name}: {callingSummary.callingTitle}
             </h3>
             <p>
-              Esta é uma leitura inicial baseada nas suas respostas. Confirme
-              com oração, frutos, maturidade, serviço prático e liderança cristã
-              madura.
+              Esta é uma leitura inicial baseada nas suas respostas. Não é uma
+              sentença final nem uma profecia automática. Confirme com oração,
+              frutos, maturidade, serviço prático e liderança cristã madura.
             </p>
           </div>
-
-          <span className="calling-summary-badge">
-            {callingSummary.ephesiansGift}
-          </span>
         </div>
 
         <div className="result-actions mb-4">
@@ -165,8 +189,14 @@ export default function Result() {
         </div>
 
         {publicSaved && (
-          <div className="alert alert-success mb-4">
+          <div className="alert alert-success mb-3">
             Seu chamado resumido foi adicionado ao mural.
+          </div>
+        )}
+
+        {resultSaved && (
+          <div className="alert alert-success mb-4">
+            Resultado completo salvo no Firebase.
           </div>
         )}
 
