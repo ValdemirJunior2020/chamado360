@@ -1,27 +1,34 @@
-// server/index.js
+// C:\Users\Valdemir Goncalves\Desktop\Meus Projetos\Chamado360\server\index.js
+
 import express from "express";
 import cors from "cors";
-import dotenv from "dotenv";
+import "dotenv/config";
 import callingRoutes from "./routes/callingRoutes.js";
 
-dotenv.config();
-
 const app = express();
-const PORT = process.env.PORT || 5000;
 
-app.use(cors());
-app.use(express.json({ limit: "1mb" }));
+const PORT = process.env.PORT || 5000;
+const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:5173";
+
+app.use(
+  cors({
+    origin: [
+      CLIENT_URL,
+      "http://localhost:5173",
+      "https://chamado360.netlify.app"
+    ],
+    methods: ["GET", "POST"],
+    credentials: true
+  })
+);
+
+app.use(express.json({ limit: "2mb" }));
 
 app.get("/", (req, res) => {
-  res.json({ success: true, message: "Chamado360 API is running." });
+  res.send("Chamado360 API is running");
 });
 
 app.use("/api/calling", callingRoutes);
-
-app.use((err, req, res, next) => {
-  console.error("Server error:", err);
-  res.status(500).json({ success: false, message: "Erro interno do servidor." });
-});
 
 app.listen(PORT, () => {
   console.log(`Chamado360 server running on port ${PORT}`);
