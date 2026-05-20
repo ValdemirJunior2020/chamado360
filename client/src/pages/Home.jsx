@@ -59,6 +59,14 @@ export default function Home() {
         <div className="row align-items-center g-5">
           <div className="col-lg-6">
             <div className="hero-copy">
+              <div className="hero-language-box mb-4">
+                <LanguageSelector
+                  language={language}
+                  setLanguage={setLanguage}
+                  label={t.languageLabel}
+                />
+              </div>
+
               <div className="eyebrow">✦ Chamado • Propósito • Sabedoria</div>
 
               <h1>{t.appName}</h1>
@@ -73,13 +81,7 @@ export default function Home() {
 
           <div className="col-lg-6">
             <form className="home-card card-premium" onSubmit={handleStart}>
-              <LanguageSelector
-                language={language}
-                setLanguage={setLanguage}
-                label={t.languageLabel}
-              />
-
-              <div className="mt-4">
+              <div>
                 <label className="form-label fw-semibold">
                   {t.namePlaceholder}
                 </label>

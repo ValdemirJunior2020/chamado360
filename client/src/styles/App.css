@@ -619,3 +619,34 @@ body {
     width: 145px;
   }
 }
+/* C:\Users\Valdemir Goncalves\Desktop\Meus Projetos\Chamado360\client\src\styles\App.css */
+
+.hero-language-box {
+  max-width: 100%;
+}
+
+.hero-language-box .language-selector,
+.hero-language-box .card-premium {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(212, 175, 55, 0.24);
+  border-radius: 24px;
+  padding: 1.2rem;
+}
+
+.hero-language-box .form-label,
+.hero-language-box label {
+  color: #ffffff;
+  font-weight: 800;
+  margin-bottom: 0.85rem;
+}
+
+@media (max-width: 576px) {
+  .hero-language-box {
+    margin-top: 1rem;
+  }
+
+  .hero-language-box .language-selector,
+  .hero-language-box .card-premium {
+    padding: 1rem;
+  }
+}
