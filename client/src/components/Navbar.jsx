@@ -1,21 +1,23 @@
-// client/src/components/Navbar.jsx
-import { Link } from "react-router-dom";
-import { translations } from "../data/translations";
+// C:\Users\Valdemir Goncalves\Desktop\Meus Projetos\Chamado360\client\src\components\Navbar.jsx
 
 export default function Navbar() {
-  const language = localStorage.getItem("chamado360_language") || "pt";
-  const t = translations[language] || translations.pt;
-
   return (
-    <nav className="navbar navbar-expand-lg app-navbar">
+    <nav className="app-navbar">
       <div className="container">
-        <Link className="navbar-brand d-flex align-items-center gap-2" to="/">
-          <span className="brand-mark">✦</span>
-          <span>
-            <strong>{t.appName}</strong>
-            <small className="d-block">{t.navSubtitle}</small>
-          </span>
-        </Link>
+        <div className="navbar-brand-wrap">
+          <img
+            src="/logo.png"
+            alt="ElevateLabs logo"
+            className="navbar-logo"
+          />
+
+          <div className="navbar-title-wrap">
+            <span className="navbar-app-name">Chamado360</span>
+            <small className="navbar-subtitle">
+              Christian reflection about purpose
+            </small>
+          </div>
+        </div>
       </div>
     </nav>
   );

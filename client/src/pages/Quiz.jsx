@@ -1,6 +1,6 @@
 // C:\Users\Valdemir Goncalves\Desktop\Meus Projetos\Chamado360\client\src\pages\Quiz.jsx
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import CalmMusicPlayer from "../components/CalmMusicPlayer";
 import LoadingScreen from "../components/LoadingScreen";
@@ -17,13 +17,28 @@ export default function Quiz() {
   const name = localStorage.getItem("chamado360_name") || "";
   const userId = localStorage.getItem("chamado360_userId") || "";
 
-  const selectedQuestions = questions[language] || questions.pt;
+  const selectedQuestions = useMemo(() => {
+    return questions[language] || questions.pt;
+  }, [language]);
+
   const t = translations[language] || translations.pt;
 
+  const getSavedAnswers = () => {
+    try {
+      const saved = JSON.parse(localStorage.getItem("chamado360_answers"));
+
+      if (Array.isArray(saved) && saved.length === selectedQuestions.length) {
+        return saved;
+      }
+
+      return Array(selectedQuestions.length).fill("");
+    } catch {
+      return Array(selectedQuestions.length).fill("");
+    }
+  };
+
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [answers, setAnswers] = useState(
-    Array(selectedQuestions.length).fill("")
-  );
+  const [answers, setAnswers] = useState(getSavedAnswers);
   const [error, setError] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
 
@@ -33,25 +48,36 @@ export default function Quiz() {
     }
   }, [name, navigate]);
 
-  const currentAnswer = answers[currentQuestionIndex];
+  useEffect(() => {
+    localStorage.setItem("chamado360_answers", JSON.stringify(answers));
+  }, [answers]);
+
+  const currentAnswer = answers[currentQuestionIndex] || "";
+  const currentQuestion = selectedQuestions[currentQuestionIndex] || "";
 
   const handleAnswerChange = (value) => {
-    const updatedAnswers = [...answers];
-    updatedAnswers[currentQuestionIndex] = value;
-    setAnswers(updatedAnswers);
-    localStorage.setItem("chamado360_answers", JSON.stringify(updatedAnswers));
+    setAnswers((prevAnswers) => {
+      const updatedAnswers = [...prevAnswers];
+      updatedAnswers[currentQuestionIndex] = value;
+      return updatedAnswers;
+    });
+
+    setError("");
   };
 
   const handleNext = () => {
-    setError("");
+    const latestAnswer = answers[currentQuestionIndex] || "";
 
-    if (!currentAnswer.trim()) {
+    if (!latestAnswer.trim()) {
       setError(t.answerRequired || "Please answer this question.");
       return;
     }
 
+    setError("");
+
     if (currentQuestionIndex < selectedQuestions.length - 1) {
-      setCurrentQuestionIndex((prev) => prev + 1);
+      setCurrentQuestionIndex((prevIndex) => prevIndex + 1);
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
 
@@ -59,27 +85,29 @@ export default function Quiz() {
     setError("");
 
     if (currentQuestionIndex > 0) {
-      setCurrentQuestionIndex((prev) => prev - 1);
+      setCurrentQuestionIndex((prevIndex) => prevIndex - 1);
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
 
   const handleGenerate = async () => {
-    setError("");
+    const updatedAnswers = [...answers];
 
-    const hasEmptyAnswer = answers.some((answer) => !answer.trim());
+    const hasEmptyAnswer = updatedAnswers.some((answer) => !answer.trim());
 
     if (hasEmptyAnswer) {
       setError(t.allAnswersRequired || "Please answer all questions.");
       return;
     }
 
+    setError("");
     setIsGenerating(true);
 
     try {
       const data = await generateCallingAnalysis({
         language,
         name,
-        answers
+        answers: updatedAnswers
       });
 
       if (!data?.success || !data?.result) {
@@ -87,7 +115,7 @@ export default function Quiz() {
       }
 
       localStorage.setItem("chamado360_result", data.result);
-      localStorage.setItem("chamado360_answers", JSON.stringify(answers));
+      localStorage.setItem("chamado360_answers", JSON.stringify(updatedAnswers));
       localStorage.setItem("chamado360_language", language);
       localStorage.setItem("chamado360_name", name);
       localStorage.setItem("chamado360_userId", userId);
@@ -95,7 +123,7 @@ export default function Quiz() {
       navigate("/result", {
         state: {
           result: data.result,
-          answers,
+          answers: updatedAnswers,
           language,
           name,
           userId
@@ -135,10 +163,14 @@ export default function Quiz() {
 
           <QuestionCard
             questionNumber={currentQuestionIndex + 1}
+            current={currentQuestionIndex + 1}
             totalQuestions={selectedQuestions.length}
-            question={selectedQuestions[currentQuestionIndex]}
+            total={selectedQuestions.length}
+            question={currentQuestion}
             answer={currentAnswer}
+            value={currentAnswer}
             onAnswerChange={handleAnswerChange}
+            setAnswer={handleAnswerChange}
             language={language}
           />
 
@@ -151,7 +183,7 @@ export default function Quiz() {
               onClick={handleBack}
               disabled={currentQuestionIndex === 0}
             >
-              {t.back}
+              {t.back || "Voltar"}
             </button>
 
             {currentQuestionIndex < selectedQuestions.length - 1 ? (
@@ -160,7 +192,7 @@ export default function Quiz() {
                 className="btn btn-gold"
                 onClick={handleNext}
               >
-                {t.next}
+                {t.next || "Próxima"}
               </button>
             ) : (
               <button
@@ -168,7 +200,7 @@ export default function Quiz() {
                 className="btn btn-gold"
                 onClick={handleGenerate}
               >
-                {t.generateResult}
+                {t.generateResult || "Gerar minha análise de chamado"}
               </button>
             )}
           </div>
