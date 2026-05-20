@@ -8,35 +8,44 @@ const text = {
     title: "Mural de Chamados",
     subtitle:
       "Veja algumas direções percebidas nas análises. São reflexões, não sentenças finais.",
-    empty: "Ainda não há chamados no mural."
+    empty: "Ainda não há chamados no mural.",
+    unavailable:
+      "O mural está temporariamente indisponível. Verifique as regras do Firestore."
   },
   en: {
     title: "Calling Wall",
     subtitle:
       "See some directions noticed in the analyses. These are reflections, not final sentences.",
-    empty: "There are no callings on the wall yet."
+    empty: "There are no callings on the wall yet.",
+    unavailable:
+      "The wall is temporarily unavailable. Check your Firestore rules."
   },
   es: {
     title: "Mural de Llamados",
     subtitle:
       "Mira algunas direcciones percibidas en los análisis. Son reflexiones, no sentencias finales.",
-    empty: "Todavía no hay llamados en el mural."
+    empty: "Todavía no hay llamados en el mural.",
+    unavailable:
+      "El mural no está disponible temporalmente. Verifica las reglas de Firestore."
   }
 };
 
 const CallingWall = ({ language = "pt" }) => {
   const [callings, setCallings] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [hasPermissionError, setHasPermissionError] = useState(false);
 
   const selectedText = text[language] || text.pt;
 
   useEffect(() => {
     const loadCallings = async () => {
       try {
+        setHasPermissionError(false);
         const data = await getPublicCallings();
         setCallings(data);
       } catch (error) {
         console.error("Error loading public callings:", error);
+        setHasPermissionError(true);
       } finally {
         setLoading(false);
       }
@@ -55,6 +64,8 @@ const CallingWall = ({ language = "pt" }) => {
 
       {loading ? (
         <div className="text-center text-light opacity-75">Loading...</div>
+      ) : hasPermissionError ? (
+        <div className="calling-wall-empty">{selectedText.unavailable}</div>
       ) : callings.length === 0 ? (
         <div className="calling-wall-empty">{selectedText.empty}</div>
       ) : (

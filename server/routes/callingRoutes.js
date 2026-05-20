@@ -27,11 +27,18 @@ router.post("/analyze", async (req, res) => {
       result
     });
   } catch (error) {
-    console.error("OpenAI analysis error:", error);
+    console.error("====================================");
+    console.error("OPENAI / BACKEND ERROR");
+    console.error("Message:", error?.message);
+    console.error("Status:", error?.status);
+    console.error("Code:", error?.code);
+    console.error("Type:", error?.type);
+    console.error("Full error:", error);
+    console.error("====================================");
 
     return res.status(500).json({
       success: false,
-      message: "Erro ao gerar análise."
+      message: error?.message || "Erro ao gerar análise."
     });
   }
 });

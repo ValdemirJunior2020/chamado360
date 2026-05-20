@@ -1,122 +1,179 @@
-// client/src/pages/Quiz.jsx
+// C:\Users\Valdemir Goncalves\Desktop\Meus Projetos\Chamado360\client\src\pages\Quiz.jsx
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import CalmMusicPlayer from "../components/CalmMusicPlayer";
-import QuestionCard from "../components/QuestionCard";
-import ProgressBar from "../components/ProgressBar";
 import LoadingScreen from "../components/LoadingScreen";
+import ProgressBar from "../components/ProgressBar";
+import QuestionCard from "../components/QuestionCard";
+import { generateCallingAnalysis } from "../api/openaiApi";
 import { questions } from "../data/questions";
 import { translations } from "../data/translations";
-import { generateCallingAnalysis } from "../api/openaiApi";
 
 export default function Quiz() {
   const navigate = useNavigate();
+
   const language = localStorage.getItem("chamado360_language") || "pt";
   const name = localStorage.getItem("chamado360_name") || "";
-  const t = translations[language] || translations.pt;
-  const activeQuestions = questions[language] || questions.pt;
+  const userId = localStorage.getItem("chamado360_userId") || "";
 
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [answers, setAnswers] = useState(() => {
-    const saved = localStorage.getItem("chamado360_answers");
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch {
-        return Array(activeQuestions.length).fill("");
-      }
-    }
-    return Array(activeQuestions.length).fill("");
-  });
+  const selectedQuestions = questions[language] || questions.pt;
+  const t = translations[language] || translations.pt;
+
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [answers, setAnswers] = useState(
+    Array(selectedQuestions.length).fill("")
+  );
   const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
 
   useEffect(() => {
-    if (!name) navigate("/");
+    if (!name) {
+      navigate("/");
+    }
   }, [name, navigate]);
 
-  useEffect(() => {
-    localStorage.setItem("chamado360_answers", JSON.stringify(answers));
-  }, [answers]);
+  const currentAnswer = answers[currentQuestionIndex];
 
-  const updateAnswer = (value) => {
-    setAnswers((prev) => {
-      const next = [...prev];
-      next[currentIndex] = value;
-      return next;
-    });
+  const handleAnswerChange = (value) => {
+    const updatedAnswers = [...answers];
+    updatedAnswers[currentQuestionIndex] = value;
+    setAnswers(updatedAnswers);
+    localStorage.setItem("chamado360_answers", JSON.stringify(updatedAnswers));
   };
 
-  const goNext = () => {
+  const handleNext = () => {
     setError("");
-    if (!answers[currentIndex]?.trim()) {
-      setError(t.requiredAnswer);
+
+    if (!currentAnswer.trim()) {
+      setError(t.answerRequired || "Please answer this question.");
       return;
     }
-    setCurrentIndex((prev) => Math.min(prev + 1, activeQuestions.length - 1));
+
+    if (currentQuestionIndex < selectedQuestions.length - 1) {
+      setCurrentQuestionIndex((prev) => prev + 1);
+    }
   };
 
-  const goBack = () => {
+  const handleBack = () => {
     setError("");
-    setCurrentIndex((prev) => Math.max(prev - 1, 0));
+
+    if (currentQuestionIndex > 0) {
+      setCurrentQuestionIndex((prev) => prev - 1);
+    }
   };
 
   const handleGenerate = async () => {
     setError("");
-    if (!answers[currentIndex]?.trim()) {
-      setError(t.requiredAnswer);
+
+    const hasEmptyAnswer = answers.some((answer) => !answer.trim());
+
+    if (hasEmptyAnswer) {
+      setError(t.allAnswersRequired || "Please answer all questions.");
       return;
     }
 
-    setIsLoading(true);
+    setIsGenerating(true);
+
     try {
-      const data = await generateCallingAnalysis({ language, name, answers });
-      if (!data.success) throw new Error(data.message || "Failed");
+      const data = await generateCallingAnalysis({
+        language,
+        name,
+        answers
+      });
+
+      if (!data?.success || !data?.result) {
+        throw new Error(data?.message || "No result returned.");
+      }
+
       localStorage.setItem("chamado360_result", data.result);
-      navigate("/result");
+      localStorage.setItem("chamado360_answers", JSON.stringify(answers));
+      localStorage.setItem("chamado360_language", language);
+      localStorage.setItem("chamado360_name", name);
+      localStorage.setItem("chamado360_userId", userId);
+
+      navigate("/result", {
+        state: {
+          result: data.result,
+          answers,
+          language,
+          name,
+          userId
+        }
+      });
     } catch (err) {
-      console.error(err);
-      setError(t.errorResult);
+      console.error("Error generating analysis:", err);
+
+      const backendMessage =
+        err?.response?.data?.message ||
+        err?.message ||
+        t.generateError ||
+        "Error generating analysis. Please try again.";
+
+      setError(backendMessage);
     } finally {
-      setIsLoading(false);
+      setIsGenerating(false);
     }
   };
 
-  if (isLoading) return <LoadingScreen message={t.loading} />;
+  if (isGenerating) {
+    return <LoadingScreen language={language} />;
+  }
 
   return (
-    <section className="page-section quiz-section">
+    <main className="page-section quiz-page">
       <div className="container">
-        <CalmMusicPlayer language={language} />
-        <ProgressBar current={currentIndex} total={activeQuestions.length} />
+        <div className="quiz-layout">
+          <div className="quiz-top-area">
+            <CalmMusicPlayer language={language} />
 
-        <QuestionCard
-          question={activeQuestions[currentIndex]}
-          value={answers[currentIndex] || ""}
-          onChange={updateAnswer}
-          label={t.question}
-          index={currentIndex}
-          total={activeQuestions.length}
-        />
+            <ProgressBar
+              current={currentQuestionIndex + 1}
+              total={selectedQuestions.length}
+            />
+          </div>
 
-        {error && <div className="alert alert-warning mt-3">{error}</div>}
+          <QuestionCard
+            questionNumber={currentQuestionIndex + 1}
+            totalQuestions={selectedQuestions.length}
+            question={selectedQuestions[currentQuestionIndex]}
+            answer={currentAnswer}
+            onAnswerChange={handleAnswerChange}
+            language={language}
+          />
 
-        <div className="d-flex flex-column flex-md-row justify-content-between gap-3 mt-4">
-          <button type="button" className="btn btn-outline-light btn-lg" onClick={goBack} disabled={currentIndex === 0}>
-            {t.back}
-          </button>
+          {error && <div className="alert alert-warning mt-3">{error}</div>}
 
-          {currentIndex < activeQuestions.length - 1 ? (
-            <button type="button" className="btn btn-gold btn-lg" onClick={goNext}>
-              {t.next}
+          <div className="quiz-actions mt-4">
+            <button
+              type="button"
+              className="btn btn-outline-light"
+              onClick={handleBack}
+              disabled={currentQuestionIndex === 0}
+            >
+              {t.back}
             </button>
-          ) : (
-            <button type="button" className="btn btn-gold btn-lg" onClick={handleGenerate}>
-              {t.generate}
-            </button>
-          )}
+
+            {currentQuestionIndex < selectedQuestions.length - 1 ? (
+              <button
+                type="button"
+                className="btn btn-gold"
+                onClick={handleNext}
+              >
+                {t.next}
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="btn btn-gold"
+                onClick={handleGenerate}
+              >
+                {t.generateResult}
+              </button>
+            )}
+          </div>
         </div>
       </div>
-    </section>
+    </main>
   );
 }

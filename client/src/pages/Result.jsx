@@ -8,19 +8,28 @@ import { translations } from "../data/translations";
 import { classifyCalling } from "../services/callingClassifier";
 import { savePublicCalling } from "../services/callingPublicService";
 
-const Result = () => {
+export default function Result() {
   const navigate = useNavigate();
   const location = useLocation();
 
   const storedLanguage = localStorage.getItem("chamado360_language") || "pt";
   const storedName = localStorage.getItem("chamado360_name") || "";
   const storedUserId = localStorage.getItem("chamado360_userId") || "";
+  const storedResult = localStorage.getItem("chamado360_result") || "";
+
+  let storedAnswers = [];
+
+  try {
+    storedAnswers = JSON.parse(localStorage.getItem("chamado360_answers")) || [];
+  } catch {
+    storedAnswers = [];
+  }
 
   const language = location.state?.language || storedLanguage;
   const name = location.state?.name || storedName;
   const userId = location.state?.userId || storedUserId;
-  const result = location.state?.result || "";
-  const answers = location.state?.answers || [];
+  const result = location.state?.result || storedResult;
+  const answers = location.state?.answers || storedAnswers;
 
   const t = translations[language] || translations.pt;
 
@@ -89,18 +98,21 @@ const Result = () => {
   };
 
   const handleRestart = () => {
+    localStorage.removeItem("chamado360_result");
+    localStorage.removeItem("chamado360_answers");
     navigate("/");
   };
 
   if (!result) {
     return (
-      <main className="page-shell">
+      <main className="page-section result-page">
         <section className="container py-5 text-center">
-          <div className="premium-card mx-auto result-empty-card">
+          <div className="premium-card card-premium mx-auto result-empty-card">
             <h1>Chamado360</h1>
             <p>{t.resultNotFound || "No result found."}</p>
-            <button className="btn btn-gold" onClick={handleRestart}>
-              {t.restart || "Start again"}
+
+            <button className="btn btn-gold" onClick={() => navigate("/quiz")}>
+              {t.redoAnalysis || "Redo analysis"}
             </button>
           </div>
         </section>
@@ -109,12 +121,15 @@ const Result = () => {
   }
 
   return (
-    <main className="page-shell result-page">
+    <main className="page-section result-page">
       <section className="container py-5">
         <div className="result-hero text-center mb-4">
           <span className="section-kicker">Chamado360</span>
           <h1>{t.resultTitle || "Resultado da sua análise de chamado"}</h1>
-          <p>{t.resultSubtitle || "Leia com oração, sabedoria e maturidade."}</p>
+          <p>
+            {t.resultSubtitle ||
+              "Leia com oração, sabedoria, maturidade e conselho."}
+          </p>
         </div>
 
         <div className="calling-summary-card mb-4">
@@ -124,8 +139,9 @@ const Result = () => {
               {name}: {callingSummary.callingTitle}
             </h3>
             <p>
-              Esta é uma leitura inicial baseada nas suas respostas. Confirme com oração,
-              frutos, maturidade, serviço prático e liderança cristã madura.
+              Esta é uma leitura inicial baseada nas suas respostas. Confirme
+              com oração, frutos, maturidade, serviço prático e liderança cristã
+              madura.
             </p>
           </div>
 
@@ -148,18 +164,16 @@ const Result = () => {
           </button>
         </div>
 
-        <ResultCard result={result} />
-
-        <WhatsAppFeedback language={language} name={name} userId={userId} />
-
         {publicSaved && (
-          <div className="text-center mt-3 text-light opacity-75">
+          <div className="alert alert-success mb-4">
             Seu chamado resumido foi adicionado ao mural.
           </div>
         )}
+
+        <ResultCard result={result} />
+
+        <WhatsAppFeedback language={language} name={name} userId={userId} />
       </section>
     </main>
   );
-};
-
-export default Result;
+}

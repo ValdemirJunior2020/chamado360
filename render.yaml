@@ -1,0 +1,17 @@
+# C:\Users\Valdemir Goncalves\Desktop\Meus Projetos\Chamado360\render.yaml
+
+services:
+  - type: web
+    name: chamado360-server
+    env: node
+    rootDir: server
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_VERSION
+        value: 20.20.1
+      - key: PORT
+        value: 5000
+      - key: OPENAI_API_KEY
+        sync: false
